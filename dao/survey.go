@@ -2,6 +2,7 @@ package dao
 
 import (
 	"fmt"
+	"time"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -22,6 +23,7 @@ type Survey struct {
 	Description string     `json:"description" bson:"description"`
 	Questions   []Question `json:"questions" bson:"questions"`
 	Status      bool       `json:"status" bson:"status"`
+	Expiry      time.Time  `json:"expiry" bson:"expiry"`
 }
 
 type SurveyResponse struct {
@@ -35,6 +37,23 @@ func GetActiveSurveys() interface{} {
 	defer session.Close()
 
 	var response []interface{}
+	clctn := session.DB("simplesurveys").C("survey")
+	query := clctn.Find(bson.M{"status": true})
+	err := query.All(&response)
+
+	if err != nil {
+		return nil
+	} else {
+		return response
+	}
+
+}
+
+func GetAllActiveSurveys() []Survey {
+	session := MgoSession.Clone()
+	defer session.Close()
+
+	var response []Survey
 	clctn := session.DB("simplesurveys").C("survey")
 	query := clctn.Find(bson.M{"status": true})
 	err := query.All(&response)
@@ -85,4 +104,19 @@ func InsertUserResponse(userResponse SurveyResponse) {
 
 	clctn := session.DB("simplesurveys").C("survey_response")
 	clctn.Insert(userResponse)
+}
+
+func UpdateStatus(surveyName string, status bool) {
+	session := MgoSession.Clone()
+	defer session.Close()
+
+	clctn := session.DB("simplesurveys").C("survey")
+
+	colQuerier := bson.M{"surveyName": surveyName}
+	change := bson.M{"$set": bson.M{"status": status}}
+	err := clctn.Update(colQuerier, change)
+	if err != nil {
+		panic(err)
+	}
+
 }

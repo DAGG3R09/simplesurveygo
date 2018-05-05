@@ -1,3 +1,6 @@
+package q5
+
+/*
 package servicehandlers
 
 import (
@@ -28,3 +31,4 @@ func methodRouter(p HttpServiceHandler, w http.ResponseWriter, r *http.Request) 
 	req.V(1) // Release resource before response -Q5
 	return response
 }
+*/
